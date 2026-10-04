@@ -119,5 +119,10 @@ jobs:
           assert research.key_claims, "AI fallback did not produce reviewable claims"
           assert script.total_words > 0
           assert abs(sum(s.duration for s in script.scenes) - 90) < 0.25
-          print("AI research/writer fallback: PASS")
+          storyboard = __import__("json").loads(open("content/projects/why-humans-dream/storyboard.json").read())
+          assert storyboard["visual_director"]["version"] == "1.0"
+          assert len(storyboard["scenes"]) == len(script.scenes)
+          assert all(scene["visual_prompt"] for scene in storyboard["scenes"])
+          assert all(scene["narration"] for scene in storyboard["scenes"])
+          print("AI research/writer/visual director fallback: PASS")
           PY
