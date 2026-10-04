@@ -1,0 +1,33 @@
+name: Generate Kokoro narration
+
+on:
+  push:
+    paths:
+      - "scripts/kokoro_voice.py"
+      - ".github/workflows/kokoro-voice.yml"
+  workflow_dispatch:
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Kokoro
+        run: |
+          python -m pip install --upgrade pip
+          pip install "kokoro>=0.9.4" soundfile numpy
+      - name: Generate narration
+        run: python scripts/kokoro_voice.py --output output/kokoro-narration.wav --voice af_heart
+      - name: Inspect audio
+        run: |
+          test -s output/kokoro-narration.wav
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 output/kokoro-narration.wav
+      - name: Upload narration
+        uses: actions/upload-artifact@v4
+        with:
+          name: kokoro-narration
+          path: output/kokoro-narration.wav
