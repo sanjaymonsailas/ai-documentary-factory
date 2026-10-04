@@ -1,0 +1,31 @@
+name: Validate documentary factory
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Compile Python
+        run: python -m compileall engine scripts
+
+      - name: Generate sample project
+        run: |
+          python scripts/create_project.py \
+            --topic "Why humans dream" \
+            --duration 90 \
+            --output /tmp/sample-project.json
+
+      - name: Validate sample project
+        run: python -m engine.validate /tmp/sample-project.json
