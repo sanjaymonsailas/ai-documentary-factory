@@ -144,8 +144,7 @@ def save_visual_specs(specs: list[VisualSpec], path: str | Path) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        json.dumps([asdict(spec) for spec in specs], indent=2, ensure_ascii=False) + "
-",
+        json.dumps([asdict(spec) for spec in specs], indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
     return path
