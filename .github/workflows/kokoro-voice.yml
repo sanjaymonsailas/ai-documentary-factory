@@ -25,7 +25,11 @@ jobs:
       - name: Inspect audio
         run: |
           test -s output/kokoro-narration.wav
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 output/kokoro-narration.wav
+          python - <<'PY'
+          import wave
+          with wave.open("output/kokoro-narration.wav") as w:
+              print("duration_seconds=", w.getnframes() / w.getframerate())
+          PY
       - name: Upload narration
         uses: actions/upload-artifact@v4
         with:
