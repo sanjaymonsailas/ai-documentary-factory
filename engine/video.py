@@ -16,28 +16,21 @@ def ffmpeg_binary() -> str:
 
 def render_still(image: str | Path, output: str | Path, duration: float,
                  camera: str = "slow_zoom", fps: int = 24) -> Path:
-    """Turn a 16:9 still into a lightweight CPU motion clip."""
+    """Turn a still into a reliable CPU video clip.
+
+    The first factory smoke test intentionally uses a conservative renderer:
+    motion can be added by providers later, while the baseline must work on
+    every GitHub-hosted FFmpeg build.
+    """
     image = Path(image)
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    frames = max(1, int(round(duration * fps)))
-    # Keep zoompan expressions portable across FFmpeg builds.
-    zoom = {
-        "static": f"zoompan=z=1.0:d={frames}:s=1920x1080:fps={fps}",
-        "slow_zoom": f"zoompan=z='min(zoom+0.0007,1.12)':d={frames}:s=1920x1080:fps={fps}",
-        "pan_left": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
-        "pan_right": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
-    }.get(camera, f"zoompan=z='min(zoom+0.0007,1.12)':d={frames}:s=1920x1080:fps={fps}")
-    vf = (
-        f"scale=1920:1080:force_original_aspect_ratio=increase,"
-        f"crop=1920:1080,"
-        f"{zoom}"
-    )
     command = [
         ffmpeg_binary(), "-y", "-loop", "1", "-i", str(image),
-        "-vf", vf,
-        "-t", str(duration), "-r", str(fps), "-c:v", "libx264",
-        "-pix_fmt", "yuv420p", str(output),
+        "-vf", "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+        "-t", str(max(0.1, duration)), "-r", str(fps),
+        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+        str(output),
     ]
     subprocess.run(command, check=True)
     return output
