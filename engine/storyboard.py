@@ -51,7 +51,7 @@ def save_storyboard(project: Project, path: str | Path) -> Path:
 
 def validate_storyboard(data: dict) -> list[str]:
     errors: list[str] = []
-    if data.get("version") != "1.0":
+    if data.get("version") != "1.1":
         errors.append("unsupported storyboard version")
     scenes = data.get("scenes", [])
     if not scenes:
