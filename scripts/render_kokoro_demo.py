@@ -44,10 +44,27 @@ def run(cmd: list[str]) -> None:
 def download_image(prompt: str, output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     encoded = urllib.parse.quote(prompt, safe="")
-    url = f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1280&height=720&nologo=true"
-    req = urllib.request.Request(url, headers={"User-Agent": "ai-documentary-factory/1.0"})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        output.write_bytes(r.read())
+    urls = [
+        f"https://image.pollinations.ai/prompt/{encoded}?model=flux&width=1280&height=720&nologo=true",
+        f"https://image.pollinations.ai/prompt/{encoded}?model=zimage&width=1280&height=720&nologo=true",
+    ]
+    last_error = None
+    for attempt in range(1, 6):
+        for url in urls:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "ai-documentary-factory/1.0"})
+                with urllib.request.urlopen(req, timeout=180) as r:
+                    data = r.read()
+                if len(data) < 50_000:
+                    raise RuntimeError(f"image response too small: {len(data)} bytes")
+                output.write_bytes(data)
+                return
+            except Exception as exc:
+                last_error = exc
+                print(f"image attempt {attempt} failed: {exc}")
+        import time
+        time.sleep(min(30, 4 * attempt))
+    raise RuntimeError(f"could not generate image after retries: {last_error}")
 
 def generate_kokoro(text: str, output: Path, voice: str = "af_heart") -> None:
     from kokoro import KPipeline
