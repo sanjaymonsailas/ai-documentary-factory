@@ -20,12 +20,31 @@ jobs:
       - name: Compile Python
         run: python -m compileall engine scripts
 
-      - name: Generate sample project
+      - name: Generate director project
         run: |
-          python scripts/create_project.py \
+          python scripts/director.py \
             --topic "Why humans dream" \
             --duration 90 \
-            --output /tmp/sample-project.json
+            --language en-us
 
-      - name: Validate sample project
-        run: python -m engine.validate /tmp/sample-project.json
+      - name: Validate generated project
+        run: |
+          python -m engine.validate \
+            content/projects/why-humans-dream/project.json
+
+      - name: Build through public CLI
+        run: |
+          python scripts/create_video.py \
+            --topic "Why humans dream" \
+            --duration 90
+
+      - name: Verify storyboard
+        run: |
+          test -f content/projects/why-humans-dream/storyboard.json
+          python - <<'PY'
+          from engine.storyboard import load_and_validate_storyboard
+          load_and_validate_storyboard(
+              "content/projects/why-humans-dream/storyboard.json"
+          )
+          print("Storyboard validation: PASS")
+          PY
