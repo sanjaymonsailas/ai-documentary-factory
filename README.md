@@ -1,6 +1,6 @@
 # AI Documentary Factory
 
-A CPU-first, cloud-ready production pipeline for turning a documentary topic into a structured story, generated visuals, narration, subtitles and a final video.
+A CPU-first, cloud-ready production pipeline for turning a documentary topic into a structured story, research package, generated visuals, narration, subtitles and a final video.
 
 ## Philosophy
 
@@ -19,11 +19,13 @@ FFmpeg handles deterministic video assembly, while Kokoro can provide local voic
 ```
 Topic
   ↓
-Project schema
+Live source collection
   ↓
-Research
+Research package
   ↓
 Script
+  ↓
+Director
   ↓
 Storyboard JSON
   ↓
@@ -43,18 +45,21 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python scripts/create_project.py \
+python scripts/pipeline.py \
   --topic "Why humans dream" \
   --duration 90
-
-python -m engine.validate \
-  content/projects/why-humans-dream/project.json
-
-python scripts/create_video.py \
-  --project content/projects/why-humans-dream/project.json
 ```
 
-The current CLI creates and validates the production plan. Scene generation, research and final timeline assembly are being added incrementally.
+This now collects real candidate sources from public Wikipedia and OpenAlex endpoints without requiring a paid API key. **Source collection is not the same as fact verification**: the next AI research stage will inspect those sources and turn them into claims with citations and caveats.
+
+## Research contract
+
+Every factual claim should eventually contain:
+- confidence level
+- source references
+- caveat where appropriate
+
+The factory never intentionally invents citations, statistics or quotations.
 
 ## Repository layout
 
@@ -69,7 +74,7 @@ The current CLI creates and validates the production plan. Scene generation, res
 ## First target
 
 A repeatable 60–90 second documentary from one topic, with:
-1. researched outline
+1. source-backed research
 2. timed script
 3. storyboard JSON
 4. scene visuals
