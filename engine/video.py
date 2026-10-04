@@ -28,10 +28,14 @@ def render_still(image: str | Path, output: str | Path, duration: float,
         "pan_left": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
         "pan_right": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
     }.get(camera, f"zoompan=z='min(zoom+0.0007,1.12)':d={frames}:s=1920x1080:fps={fps}")
-    command = [
-        ffmpeg_binary(), "-y", "-loop", "1", "-i", str(image), "-vf",
+    vf = (
         f"scale=1920:1080:force_original_aspect_ratio=increase,"
-        f"crop=1920:1080,{zoom}",
+        f"crop=1920:1080,"
+        f"{zoom}"
+    )
+    command = [
+        ffmpeg_binary(), "-y", "-loop", "1", "-i", str(image),
+        "-vf", vf,
         "-t", str(duration), "-r", str(fps), "-c:v", "libx264",
         "-pix_fmt", "yuv420p", str(output),
     ]
