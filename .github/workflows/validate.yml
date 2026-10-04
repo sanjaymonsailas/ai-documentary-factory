@@ -103,3 +103,21 @@ jobs:
           PY
 
 
+
+
+      - name: Validate AI adapters in fallback mode
+        run: |
+          python scripts/ai_pipeline.py \
+            --topic "Why humans dream" \
+            --duration 90 \
+            --language en-us
+          python - <<'PY'
+          from engine.research import load_research
+          from engine.script import load_script
+          research = load_research("content/projects/why-humans-dream/research.json")
+          script = load_script("content/projects/why-humans-dream/script.json")
+          assert research.key_claims, "AI fallback did not produce reviewable claims"
+          assert script.total_words > 0
+          assert abs(sum(s.duration for s in script.scenes) - 90) < 0.25
+          print("AI research/writer fallback: PASS")
+          PY
