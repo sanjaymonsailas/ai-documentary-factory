@@ -20,6 +20,23 @@ jobs:
       - name: Compile Python
         run: python -m compileall engine scripts
 
+      - name: Collect live research
+        run: |
+          python scripts/research.py \
+            --topic "Why humans dream" \
+            --output /tmp/research.json \
+            --wikipedia-limit 2 \
+            --academic-limit 2
+
+      - name: Validate live research
+        run: |
+          python - <<'PY'
+          from engine.research import load_research
+          brief = load_research("/tmp/research.json")
+          assert len(brief.sources) > 0, "No external sources collected"
+          print(f"Collected {len(brief.sources)} sources")
+          PY
+
       - name: Generate director project
         run: |
           python scripts/director.py \
@@ -51,12 +68,11 @@ jobs:
           from engine.script import load_script
           from engine.storyboard import load_and_validate_storyboard
 
-          load_research("content/projects/why-humans-dream/research.json")
+          research = load_research("content/projects/why-humans-dream/research.json")
           script = load_script("content/projects/why-humans-dream/script.json")
-          load_and_validate_storyboard(
-              "content/projects/why-humans-dream/storyboard.json"
-          )
+          load_and_validate_storyboard("content/projects/why-humans-dream/storyboard.json")
 
+          assert len(research.sources) > 0
           assert script.total_words > 0
           assert script.target_total_words > 0
           print("Research validation: PASS")
