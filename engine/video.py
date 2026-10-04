@@ -20,16 +20,18 @@ def render_still(image: str | Path, output: str | Path, duration: float,
     image = Path(image)
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
+    frames = max(1, int(round(duration * fps)))
+    # Keep zoompan expressions portable across FFmpeg builds.
     zoom = {
-        "static": "zoompan=z=1.0",
-        "slow_zoom": "zoompan=z='min(zoom+0.0007,1.12)'",
-        "pan_left": "zoompan=z='min(zoom+0.0004,1.08)':x='iw*0.08*(1-on/((duration)*25))'",
-        "pan_right": "zoompan=z='min(zoom+0.0004,1.08)':x='iw*0.08*(on/((duration)*25))'",
-    }.get(camera, "zoompan=z='min(zoom+0.0007,1.12)'")
+        "static": f"zoompan=z=1.0:d={frames}:s=1920x1080:fps={fps}",
+        "slow_zoom": f"zoompan=z='min(zoom+0.0007,1.12)':d={frames}:s=1920x1080:fps={fps}",
+        "pan_left": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
+        "pan_right": f"zoompan=z='min(zoom+0.0004,1.08)':x='iw/2-(iw/zoom/2)':d={frames}:s=1920x1080:fps={fps}",
+    }.get(camera, f"zoompan=z='min(zoom+0.0007,1.12)':d={frames}:s=1920x1080:fps={fps}")
     command = [
         ffmpeg_binary(), "-y", "-loop", "1", "-i", str(image), "-vf",
         f"scale=1920:1080:force_original_aspect_ratio=increase,"
-        f"crop=1920:1080,{zoom}:d={max(1, int(duration * fps))}:s=1920x1080:fps={fps}",
+        f"crop=1920:1080,{zoom}",
         "-t", str(duration), "-r", str(fps), "-c:v", "libx264",
         "-pix_fmt", "yuv420p", str(output),
     ]
