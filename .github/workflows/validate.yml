@@ -105,6 +105,22 @@ jobs:
 
 
 
+      - name: End-to-end documentary render
+        run: |
+          python scripts/ai_pipeline.py --topic "Why humans dream" --duration 30 --language en-us
+          python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --subtitles
+          test -s content/projects/why-humans-dream/output/final.mp4
+          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 content/projects/why-humans-dream/output/final.mp4
+
+      - name: Upload rendered documentary
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentary-smoke-test
+          path: |
+            content/projects/why-humans-dream/output/final.mp4
+            content/projects/why-humans-dream/output/subtitles.srt
+          if-no-files-found: error
+
       - name: Validate AI adapters in fallback mode
         run: |
           python scripts/ai_pipeline.py \
