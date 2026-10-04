@@ -61,7 +61,7 @@ def _fallback_spec(scene: Scene, topic: str, index: int) -> VisualSpec:
         lighting=lighting,
         palette="restrained neutrals with subtle cool highlights",
         camera=scene.camera,
-        continuity_keys=[topic.lower(), scene.title.lower()],
+        continuity_keys=[topic.lower(), "documentary-world", scene.title.lower()],
         prompt=prompt,
     )
 
