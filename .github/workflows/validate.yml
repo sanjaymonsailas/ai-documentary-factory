@@ -85,3 +85,21 @@ jobs:
           python scripts/create_video.py \
             --topic "Why humans dream" \
             --duration 90
+
+      - name: Validate rendering layer
+        run: |
+          python -m compileall engine scripts
+          python scripts/render_factory.py --help
+          python - <<'PY'
+          from pathlib import Path
+          from engine.subtitles import write_srt
+          from engine.assets import generate_fallback_image
+          root = Path("/tmp/factory-smoke")
+          image = generate_fallback_image("smoke test", root / "scene.png", "Smoke Test")
+          assert image.exists()
+          srt = write_srt([{"duration": 2, "narration": "A test narration."}], root / "test.srt")
+          assert "00:00:00,000 --> 00:00:02,000" in srt.read_text()
+          print("Rendering adapters: PASS")
+          PY
+
+
