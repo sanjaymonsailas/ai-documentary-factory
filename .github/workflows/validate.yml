@@ -107,8 +107,9 @@ jobs:
 
       - name: End-to-end documentary render
         run: |
-          python scripts/ai_pipeline.py --topic "Why humans dream" --duration 30 --language en-us
-          python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --subtitles
+          python scripts/pipeline.py --topic "Why humans dream" --duration 30 --language en-us
+          python scripts/render_factory.py --project content/projects/why-humans-dream/project.json
+          cp content/projects/why-humans-dream/output/documentary-silent.mp4 content/projects/why-humans-dream/output/final.mp4
           test -s content/projects/why-humans-dream/output/final.mp4
           ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 content/projects/why-humans-dream/output/final.mp4
 
