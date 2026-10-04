@@ -32,19 +32,40 @@ jobs:
           python -m engine.validate \
             content/projects/why-humans-dream/project.json
 
-      - name: Build through public CLI
+      - name: Build research to script pipeline
+        run: |
+          python scripts/pipeline.py \
+            --topic "Why humans dream" \
+            --duration 90 \
+            --language en-us
+
+      - name: Verify production handoff
+        run: |
+          test -f content/projects/why-humans-dream/research.json
+          test -f content/projects/why-humans-dream/script.json
+          test -f content/projects/why-humans-dream/script.md
+          test -f content/projects/why-humans-dream/storyboard.json
+
+          python - <<'PY'
+          from engine.research import load_research
+          from engine.script import load_script
+          from engine.storyboard import load_and_validate_storyboard
+
+          load_research("content/projects/why-humans-dream/research.json")
+          script = load_script("content/projects/why-humans-dream/script.json")
+          load_and_validate_storyboard(
+              "content/projects/why-humans-dream/storyboard.json"
+          )
+
+          assert script.total_words > 0
+          assert script.target_total_words > 0
+          print("Research validation: PASS")
+          print("Script validation: PASS")
+          print("Storyboard validation: PASS")
+          PY
+
+      - name: Build through public video CLI
         run: |
           python scripts/create_video.py \
             --topic "Why humans dream" \
             --duration 90
-
-      - name: Verify storyboard
-        run: |
-          test -f content/projects/why-humans-dream/storyboard.json
-          python - <<'PY'
-          from engine.storyboard import load_and_validate_storyboard
-          load_and_validate_storyboard(
-              "content/projects/why-humans-dream/storyboard.json"
-          )
-          print("Storyboard validation: PASS")
-          PY
