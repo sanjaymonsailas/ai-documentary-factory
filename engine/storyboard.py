@@ -8,7 +8,7 @@ from .schema import Project
 
 def storyboard_from_project(project: Project) -> dict:
     return {
-        "version": "1.0",
+        "version": "1.1",
         "project": {
             "id": project.id,
             "title": project.title,
@@ -16,6 +16,8 @@ def storyboard_from_project(project: Project) -> dict:
             "language": project.language,
             "duration": project.target_duration,
         },
+        "visual_director": project.metadata.get("visual_director", {}),
+        "script": project.metadata.get("script", {}),
         "scenes": [
             {
                 "id": scene.id,
