@@ -1,42 +1,67 @@
 # AI Documentary Factory
 
-A CPU-first, cloud-ready production pipeline for turning a documentary topic into a structured story, research package, generated visuals, narration, subtitles and a final video.
+A CPU-first, cloud-ready production pipeline for turning a documentary topic into a structured story, research package, cinematic scene assets, narration, subtitles, music and a final video.
 
 ## Philosophy
 
 **AI is the director's assistant, not the infrastructure requirement.**
 
-The first version deliberately avoids requiring:
-- a personal VPS
-- a dedicated GPU
-- paid video-generation APIs
-- paid voice APIs
+The factory is provider-agnostic: CPU fallbacks work without a GPU, while image/video/voice providers can be plugged in through command templates.
 
-FFmpeg handles deterministic video assembly, while Kokoro can provide local voice synthesis. Blender is optional for procedural 3D scenes.
-
-## Current pipeline
+## Production pipeline
 
 ```
 Topic
   ↓
 Live source collection
   ↓
-Research package
+Research + claims
   ↓
-Script
+AI writer
   ↓
-Director
+Visual director
   ↓
 Storyboard JSON
   ↓
-Scene assets
+Image/video scene generation
   ↓
 Kokoro narration
   ↓
+Music + ducking
+  ↓
 FFmpeg assembly
+  ↓
+Subtitles
   ↓
 Final documentary
 ```
+
+## Rendering
+
+CPU-only still motion:
+```bash
+python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --audio --subtitles
+```
+
+With background music:
+```bash
+python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --music assets/music/bed.wav --subtitles
+```
+
+AI video scenes can be enabled with `--ai-video` when `DOCUMENTARY_VIDEO_CMD` is configured. The command may use:
+- `{prompt}`
+- `{output}`
+- `{duration}`
+- `{image}` (optional first-frame/reference image)
+
+Example provider templates belong in local environment configuration; no vendor is hard-coded into the factory.
+
+## Environment
+
+- `DOCUMENTARY_IMAGE_CMD` — image generator command with `{prompt}` and `{output}`
+- `DOCUMENTARY_VIDEO_CMD` — optional video generator command with `{prompt}`, `{output}`, `{duration}`, `{image}`
+- `KOKORO_CMD` — narration command with `{text}` and `{output}`
+- `DOCUMENTARY_FONT` — optional subtitle/fallback font
 
 ## Quick start
 
@@ -45,21 +70,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python scripts/pipeline.py \
-  --topic "Why humans dream" \
-  --duration 90
+python scripts/ai_pipeline.py --topic "Why humans dream" --duration 90 --language en-us
+python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --audio --subtitles
 ```
 
-This now collects real candidate sources from public Wikipedia and OpenAlex endpoints without requiring a paid API key. **Source collection is not the same as fact verification**: the next AI research stage will inspect those sources and turn them into claims with citations and caveats.
-
-## Research contract
-
-Every factual claim should eventually contain:
-- confidence level
-- source references
-- caveat where appropriate
-
-The factory never intentionally invents citations, statistics or quotations.
+The research collector uses public Wikipedia and OpenAlex endpoints without a paid API key. **Source collection is not fact verification**; claims still require synthesis and review.
 
 ## Repository layout
 
@@ -73,13 +88,4 @@ The factory never intentionally invents citations, statistics or quotations.
 
 ## First target
 
-A repeatable 60–90 second documentary from one topic, with:
-1. source-backed research
-2. timed script
-3. storyboard JSON
-4. scene visuals
-5. Kokoro narration
-6. subtitles
-7. assembled MP4
-
-After that works reliably, we scale to 5–10 minute documentaries and multilingual versions.
+A repeatable 60–90 second documentary from one topic, then 5–10 minute documentaries and multilingual versions.
