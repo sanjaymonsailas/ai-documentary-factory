@@ -1,0 +1,71 @@
+name: Its All Good Man - Daily Documentary
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Optional topic override"
+        required: false
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
+      TEXT_MODEL: openai/gpt-5.4-nano
+      IMAGE_MODEL: black-forest-labs/flux.1-schnell
+      KOKORO_VOICE: af_heart
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      YOUTUBE_PRIVACY: public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check generation secret
+        run: test -n "$POLLINATIONS_API_KEY"
+      - name: Install production dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-daily.txt
+      - name: Generate long documentary
+        run: |
+          if [ -n "${{ inputs.topic }}" ]; then
+            python scripts/daily_factory.py --topic "${{ inputs.topic }}" --date "$(date -u +%F)"
+          else
+            python scripts/daily_factory.py --date "$(date -u +%F)"
+          fi
+      - name: Validate output
+        run: |
+          VIDEO=$(find output/daily -name final.mp4 -print -quit)
+          test -s "$VIDEO"
+          DURATION=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$VIDEO")
+          echo "duration_seconds=$DURATION"
+          python -c "assert float('$DURATION') >= 420, 'Video is shorter than 7 minutes'"
+      - name: Upload to YouTube
+        run: |
+          test -n "$YOUTUBE_CLIENT_ID"
+          test -n "$YOUTUBE_CLIENT_SECRET"
+          test -n "$YOUTUBE_REFRESH_TOKEN"
+          VIDEO=$(find output/daily -name final.mp4 -print -quit)
+          META=$(find output/daily -name metadata.json -print -quit)
+          python - "$VIDEO" "$META" <<'PY'
+          import json, subprocess, sys
+          meta=json.load(open(sys.argv[2]))
+          subprocess.run([
+              "python","scripts/youtube_upload.py",sys.argv[1],
+              meta["title"],meta["description"],*meta.get("tags",[])
+          ],check=True)
+          PY
+      - name: Upload production artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: its-all-good-man-daily-documentary
+          path: output/daily/
+          retention-days: 7
