@@ -1,6 +1,0 @@
-kokoro>=0.9.4
-soundfile
-numpy
-google-api-python-client
-google-auth
-google-auth-httplib2

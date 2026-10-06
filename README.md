@@ -1,91 +1,38 @@
-# AI Documentary Factory
+# Zombie Horde
 
-A CPU-first, cloud-ready production pipeline for turning a documentary topic into a structured story, research package, cinematic scene assets, narration, subtitles, music and a final video.
+Zombie Horde is a browser-first hybrid-casual crowd action prototype built around one satisfying loop:
 
-## Philosophy
+**aim → multiply → avoid defenses → grow the horde → smash the base → upgrade → repeat**
 
-**AI is the director's assistant, not the infrastructure requirement.**
+## Tech
 
-The factory is provider-agnostic: CPU fallbacks work without a GPU, while image/video/voice providers can be plugged in through command templates.
+- TypeScript
+- Three.js
+- Vite
+- WebGL
+- LocalStorage progression
 
-## Production pipeline
-
-```
-Topic
-  ↓
-Live source collection
-  ↓
-Research + claims
-  ↓
-AI writer
-  ↓
-Visual director
-  ↓
-Storyboard JSON
-  ↓
-Image/video scene generation
-  ↓
-Kokoro narration
-  ↓
-Music + ducking
-  ↓
-FFmpeg assembly
-  ↓
-Subtitles
-  ↓
-Final documentary
-```
-
-## Rendering
-
-CPU-only still motion:
-```bash
-python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --audio --subtitles
-```
-
-With background music:
-```bash
-python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --music assets/music/bed.wav --subtitles
-```
-
-AI video scenes can be enabled with `--ai-video` when `DOCUMENTARY_VIDEO_CMD` is configured. The command may use:
-- `{prompt}`
-- `{output}`
-- `{duration}`
-- `{image}` (optional first-frame/reference image)
-
-Example provider templates belong in local environment configuration; no vendor is hard-coded into the factory.
-
-## Environment
-
-- `DOCUMENTARY_IMAGE_CMD` — image generator command with `{prompt}` and `{output}`
-- `DOCUMENTARY_VIDEO_CMD` — optional video generator command with `{prompt}`, `{output}`, `{duration}`, `{image}`
-- `KOKORO_CMD` — narration command with `{text}` and `{output}`
-- `DOCUMENTARY_FONT` — optional subtitle/fallback font
-
-## Quick start
+## Run
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-python scripts/ai_pipeline.py --topic "Why humans dream" --duration 90 --language en-us
-python scripts/render_factory.py --project content/projects/why-humans-dream/project.json --audio --subtitles
+npm install
+npm run dev
 ```
 
-The research collector uses public Wikipedia and OpenAlex endpoints without a paid API key. **Source collection is not fact verification**; claims still require synthesis and review.
+Production build:
 
-## Repository layout
+```bash
+npm run build
+```
 
-- `engine/` — reusable production engine
-- `scripts/` — command-line entry points
-- `content/` — documentary projects and source material
-- `blender/` — optional procedural 3D renderer
-- `assets/` — generated/local assets
-- `output/` — final renders
-- `.github/workflows/` — automated validation
+## Prototype scope
 
-## First target
+The current vertical slice has five progressively harder levels, three zombie types, multiplier gates, hazards, defense squads, a base attack, a simple Zombie Lab and start-count progression.
 
-A repeatable 60–90 second documentary from one topic, then 5–10 minute documentaries and multilingual versions.
+The game is deliberately browser-friendly: shared meshes, bounded crowd counts, simple collision logic and lightweight procedural audio.
+
+## Visual target
+
+The project is designed from the supplied Zombie Horde concept reference: a colorful, polished, isometric 3D cartoon crowd game. See `docs/visual-direction.md` and `public/visual-direction.svg`.
+
+This repository should remain focused. New systems should improve the core fantasy instead of turning the game into a management dashboard.
