@@ -362,6 +362,8 @@ function startLevel(){
 function buildRun(){
   world.clear();
   buildWorld();
+  for (const t of ['walker','runner','tank'] as ZombieType[]) world.add(zombieMeshes[t]);
+  world.add(hordeGroup);
   hordeZ=0; playerX=0; solvedGates=0; solvedHazards=0; solvedSquads=0; attackTimer=0; shake=0;
   baseHp=currentLevel.baseHp; baseMax=currentLevel.baseHp;
   hordeCount=currentLevel.starting+save.startBonus;
